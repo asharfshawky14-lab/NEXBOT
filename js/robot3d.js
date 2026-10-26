@@ -356,7 +356,7 @@ if (stage && !document.querySelector("#robot3d-canvas")) {
     const gait = t * walkFrequency;
 
     // Gentle body movement and turning
-    robot.position.y = 0.04 + Math.abs(Math.sin(gait)) * 0.055;
+    robot.position.y = -0.36;
     robot.rotation.y = Math.sin(t * 0.38) * 0.12;
     torso.rotation.z = Math.sin(gait) * 0.025;
     torso.rotation.x = Math.cos(gait) * 0.018;
