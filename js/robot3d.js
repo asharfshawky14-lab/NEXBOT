@@ -344,43 +344,70 @@ if (stage && !document.querySelector("#robot3d-canvas")) {
   observer.observe(stage);
   resize();
 
-  // Animation
+  
+  // Animation: coordinated humanoid movement
   const clock = new THREE.Clock();
+  const walkFrequency = 2.6;
 
   function animate() {
     requestAnimationFrame(animate);
 
     const t = clock.getElapsedTime();
+    const gait = t * walkFrequency;
 
-    robot.position.y = Math.sin(t * 1.15) * 0.055;
-    robot.rotation.y = Math.sin(t * 0.42) * 0.12;
-    torso.rotation.z = Math.sin(t * 0.8) * 0.018;
-    headPivot.rotation.y = Math.sin(t * 0.65) * 0.15;
-    headPivot.rotation.x = Math.sin(t * 0.9) * 0.035;
+    // Gentle body movement and turning
+    robot.position.y = 0.04 + Math.abs(Math.sin(gait)) * 0.055;
+    robot.rotation.y = Math.sin(t * 0.38) * 0.12;
+    torso.rotation.z = Math.sin(gait) * 0.025;
+    torso.rotation.x = Math.cos(gait) * 0.018;
 
+    // Head stabilizes while the body moves
+    headPivot.rotation.y = Math.sin(t * 0.65) * 0.13;
+    headPivot.rotation.x = Math.sin(gait * 0.5) * 0.025;
+
+    // Opposite arm swing
     arms.forEach(({ side, shoulder, elbow }) => {
-      shoulder.rotation.z =
-        side * (0.06 + Math.sin(t * 1.05 + side) * 0.045);
-      elbow.rotation.z = side * (0.12 + Math.sin(t * 0.8 + side) * 0.08);
+      const phase = gait + (side === 1 ? Math.PI : 0);
+
+      shoulder.rotation.x = Math.sin(phase) * 0.3;
+      shoulder.rotation.z = side * (0.055 + Math.sin(t * 0.8) * 0.025);
+      elbow.rotation.x = 0.12 + Math.max(0, Math.sin(phase)) * 0.24;
+      elbow.rotation.z = side * 0.08;
+      elbow.rotation.y = Math.sin(phase) * 0.035;
     });
 
-    legs.forEach(({ side, hip, knee }) => {
-      hip.rotation.z = Math.sin(t * 0.9 + side) * 0.025;
-      knee.rotation.z = Math.max(0, Math.sin(t * 0.9 + side) * 0.035);
+    // Alternating hip and knee movement
+    legs.forEach(({ side, hip, knee, foot }) => {
+      const phase = gait + (side === 1 ? Math.PI : 0);
+      const stride = Math.sin(phase);
+
+      hip.rotation.x = stride * 0.34;
+      hip.rotation.z = side * 0.018;
+
+      // Bend the knee more during the forward swing
+      knee.rotation.x = Math.max(0, Math.cos(phase)) * 0.48;
+
+      // Slight ankle compensation
+      foot.rotation.x = -hip.rotation.x * 0.35 - knee.rotation.x * 0.25;
     });
 
-    coreRing.rotation.z = t * 0.55;
+    // Glowing energy core and holographic ring
+    coreRing.rotation.z = t * 0.8;
     cyanLight.intensity = 17 + Math.sin(t * 2) * 3;
     halo.rotation.z = -t * 0.18;
 
     particles.children.forEach((particle) => {
-      particle.position.y += Math.sin(t + particle.userData.phase) * 0.0008;
+      const phase = particle.userData.phase;
+      particle.position.y =
+        0.6 + (Math.floor(phase / 0.7) % 12) * 0.34 +
+        Math.sin(t * 1.2 + phase) * 0.045;
     });
 
     renderer.render(scene, camera);
   }
 
   animate();
+
 
   // Respect reduced-motion preference
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
