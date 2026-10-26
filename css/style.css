@@ -440,18 +440,19 @@ a:focus-visible {
 }
 
 .robot-panel::before {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  content: "";
-  background: linear-gradient(
-    135deg,
-    rgba(112, 230, 255, 0.045),
-    transparent 35%,
-    transparent 70%,
-    rgba(167, 139, 250, 0.045)
-  );
+  display: none !important;
+}
+
+.robot-panel {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.robot-panel > .panel-topline,
+.robot-panel > .panel-footer {
+  display: none !important;
 }
 
 .panel-topline,
